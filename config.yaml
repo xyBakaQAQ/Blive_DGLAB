@@ -8,17 +8,48 @@ dglab:
   controller_url: "http://127.0.0.1:8920"
   controller_id: "all"
 
+# 累计模式配置
+# enabled: true  → 触发时只加强度，不减回来
+# enabled: false → 普通模式，加完等待后减回来
+#
+# limits 下每个事件的触发次数（每人，重启归零）：
+#   -1 = 不限制
+#    0 = 关闭该事件的累计触发
+#   1+ = 最多触发 N 次
+#
+# strength_add：累计模式下专用的强度值（不填则复用各事件自身的 strength_add）
+accumulate:
+  enabled: true
+  limits:
+    danmaku:              -1   # 弹幕
+    danmaku_guard_bonus:  -1   # 舰长弹幕加成
+    gift:                 -1   # 礼物
+    super_chat:           -1   # SC
+    guard:                -1   # 上舰
+    interact_enter:        1   # 进房
+    interact_follow:       1   # 关注
+    interact_share:        0   # 分享
+    interact_special_follow: 0
+  strength_add:
+    danmaku:              2    # 累计模式下弹幕触发的强度（覆盖 danmaku.strength_add）
+    danmaku_guard_bonus:       # 不填则用 guard_bonus 里各自的值
+    gift:                      # 不填则用匹配档位的值
+    super_chat:                # 不填则用匹配档位的值
+    guard:                     # 不填则用 guard.levels 里各自的值
+    interact_enter:       
+    interact_follow:      
+    interact_share:       
+    interact_special_follow: 
+
 # 弹幕触发配置
-# duration 支持秒（如 "10s"）、分钟（如 "2m"）、混合（如 "1m30s"）
 danmaku:
   enabled: true
-  strength_add: 1
-  duration: "5s"
+  strength_add: 3
+  duration: "3s"
   rate_limit:
     per: "1m"            # 每多长时间重置一次计数
     max_triggers: 5      # 该时间内同一用户最多触发次数
-  # 舰长/提督/总督发弹幕时的额外强度叠加（在基础 strength_add 之上再加）
-  guard_bonus:
+  guard_bonus:           # 舰长/提督/总督发弹幕时的额外强度叠加（在基础 strength_add 之上再加）
     enabled: true
     3: # 舰长
       strength_add: 2
@@ -30,22 +61,22 @@ danmaku:
       strength_add: 6
       duration: "5s"
 
-# 互动事件触发配置（进房间、关注等）
+# 互动事件触发配置
 interact:
-  enter:           # 进入房间 (msg_type=1)
+  enter:           # 进入房间
     enabled: false
     strength_add: 1
     duration: "2s"
-  follow:          # 关注主播 (msg_type=2)
+  follow:          # 关注主播
     enabled: true
     strength_add: 3
     duration: "3s"
-  share:           # 分享直播间 (msg_type=3)
+  share:           # 分享直播间
     enabled: true
     strength_add: 4
     duration: "4s"
-  special_follow:  # 特别关注 (msg_type=4)
-    enabled: true
+  special_follow:  # 特别关注
+    enabled: false
     strength_add: 5
     duration: "5s"
 
@@ -92,7 +123,7 @@ super_chat:
       strength_add: 35
       duration: "1m"
 
-# 舰长档位（按 guard_level 直接配置）
+# 舰长档位
 guard:
   enabled: true
   levels:
@@ -109,4 +140,3 @@ guard:
 # 日志配置
 log:
   level: "INFO"
-  show_unknown_cmd: false
