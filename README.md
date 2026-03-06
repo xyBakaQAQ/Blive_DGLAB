@@ -1,6 +1,6 @@
 # Bilibili 直播弹幕 DG-Lab 控制器
 
-## ⚠️ 免责声明
+## 免责声明
 
 >本项目仅供学习之用。使用本项目代码所产生的一切后果由使用者自行承担，开发者不承担任何责任。
 
@@ -22,6 +22,7 @@
 - **上舰联动**：用户开通舰长/提督/总督时触发
 - **互动事件**：进房、关注、分享、特别关注等事件触发
 - **频率限制**：防止单用户频繁触发
+- **累计模式**：支持逐次叠加强度的可选工作模式
 - **灵活配置**：通过 YAML 配置文件管理
 
 ## 环境要求
@@ -36,7 +37,7 @@
 
 - **[DG-Lab Coyote Game Hub](https://github.com/hyperzlib/DG-Lab-Coyote-Game-Hub)** - DG-Lab 设备的开源控制中心，提供 HTTP API 接口支持
 
-## 安装
+## 使用
 
 1. 克隆或下载本项目
 
@@ -48,70 +49,12 @@
 
 ## 配置
 
-编辑 `config.yaml` 文件配置以下内容：
+请在 `config.yaml` 中填写直播间 ID、SESSDATA、以及 DG‑Lab 控制器地址等必要信息。
 
-### 1. Bilibili 账户配置
-```yaml
-bilibili:
-  room_id: 1796101901          # 直播间 ID
-  sessdata: "your_sessdata"    # B站 Cookie 中的 SESSDATA
-```
+> **注意**：SESSDATA 用于获取用户名，若未填写则无法获取
 
-### 2. DG-Lab 控制器配置
-```yaml
-dglab:
-  controller_url: "http://127.0.0.1:8920"  # 控制器地址
-  controller_id: "all"                      # 设备 ID（all 表示所有设备）
-```
+>不要将含有真实 SESSDATA 的配置文件上传到公开仓库
 
-### 3. 弹幕触发配置
-```yaml
-danmaku:
-  enabled: true
-  strength_add: 3              # 基础强度增加值
-  duration: "3s"               # 脉冲持续时间
-  rate_limit:
-    window: "1m"               # 统计窗口
-    max_triggers: 5            # 窗口内单用户最多触发次数
-  guard_bonus:                 # 舰长/提督/总督额外加成
-    enabled: true
-    3: { strength_add: 2, duration: "2s" }  # 舰长
-    2: { strength_add: 4, duration: "3s" }  # 提督
-    1: { strength_add: 6, duration: "5s" }  # 总督
-```
-
-### 4. 互动事件配置
-```yaml
-interact:
-  enter:          # 进入房间
-    enabled: false
-    strength_add: 1
-    duration: "2s"
-  follow:         # 关注
-    enabled: true
-    strength_add: 3
-    duration: "3s"
-  share:          # 分享
-    enabled: true
-    strength_add: 4
-    duration: "4s"
-```
-
-### 5. 礼物档位配置
-```yaml
-gift:
-  enabled: true
-  tiers:
-    - min_price: 0.1
-      strength_add: 5
-      duration: "3s"
-    # ... 更多档位
-```
-
-### 6. 其他配置
-- **super_chat**：醒目留言档位
-- **guard**：舰长/提督/总督等级配置
-- **log**：日志级别和输出选项
 
 ## 使用方法
 
@@ -144,21 +87,6 @@ python dglab.py
 
 </details>
 
-## 时间格式支持
-
-配置文件中的时间值支持以下格式：
-
-- `"30s"` → 30 秒
-- `"2m"` → 2 分钟（120 秒）
-- `"1m30s"` → 1 分钟 30 秒
-- `30` 或 `30.0` → 数字格式（秒）
-
-
-## 注意事项
-
-⚠️ **安全提示**
-
-- 不要将含有真实 SESSDATA 的配置文件上传到公开仓库
 
 ## 许可证
 
