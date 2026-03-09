@@ -30,11 +30,6 @@ GIFT_TIERS: list      = sorted(cfg["gift"]["tiers"], key=lambda t: t["min_price"
 SC_TIERS: list        = sorted(cfg["super_chat"]["tiers"], key=lambda t: t["min_price"], reverse=True)
 GUARD_LEVELS: dict    = {int(k): v for k, v in cfg["guard"]["levels"].items()}
 
-ACC_CFG: dict         = cfg.get("accumulate", {})
-ACC_ENABLED: bool     = ACC_CFG.get("enabled", False)
-ACC_LIMITS: dict      = ACC_CFG.get("limits", {})
-ACC_STRENGTH: dict    = ACC_CFG.get("strength_add", {})
-
 # ── 日志 ──────────────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=getattr(logging, cfg["log"]["level"].upper(), logging.INFO),
@@ -63,54 +58,40 @@ def fmt_duration(value) -> str:
         return f"{m}m{s}s"
     return f"{m}m" if m else f"{s}s"
 
-# ── 限流器（滑动窗口） ────────────────────────────────────────────────────────
+# ── 限流器 ────────────────────────────────────────────────────────────
 class RateLimiter:
-    def __init__(self, per: float, max_triggers: int):
-        self._per = per
-        self._max = max_triggers
-        self._records: dict[int, list[float]] = {}
+    def __init__(self, time_window: float, max_count: int, enabled: bool = True):
+        self._time_window = time_window  # 时间窗口（秒）
+        self._max_count = max_count      # 窗口内最大触发次数
+        self._enabled = enabled
+        self._user_records: dict[int, list[float]] = {}  # uid -> [触发时间戳列表]
 
     def allow(self, uid: int) -> bool:
+        """检查用户是否允许触发"""
+        if not self._enabled:
+            return True
+        
         now = asyncio.get_event_loop().time()
-        ts = [t for t in self._records.get(uid, []) if now - t < self._per]
-        if len(ts) >= self._max:
-            self._records[uid] = ts
+        
+        # 获取该用户的历史记录，过滤掉时间窗口外的记录
+        timestamps = [t for t in self._user_records.get(uid, []) if now - t < self._time_window]
+        
+        # 检查是否超过上限
+        if len(timestamps) >= self._max_count:
+            self._user_records[uid] = timestamps
             return False
-        ts.append(now)
-        self._records[uid] = ts
+        
+        # 允许触发，记录时间戳
+        timestamps.append(now)
+        self._user_records[uid] = timestamps
         return True
 
 _rl_cfg = DANMAKU_CFG.get("rate_limit", {})
 _rate_limiter = RateLimiter(
-    per=parse_duration(_rl_cfg.get("per", "1m")),
-    max_triggers=int(_rl_cfg.get("max_triggers", 5)),
+    time_window=parse_duration(_rl_cfg.get("time_window", "1m")),
+    max_count=int(_rl_cfg.get("max_count", 5)),
+    enabled=bool(_rl_cfg.get("enabled", True)),
 )
-
-# ── 累计计数器 ────────────────────────────────────────────────────────────────
-class AccumulateCounter:
-    """
-    limit 语义：
-      -1 = 不限制
-       0 = 该事件关闭（不触发）
-      1+ = 每人最多触发 N 次
-    """
-    def __init__(self):
-        self._counts: dict[tuple, int] = {}
-
-    def allow(self, event_key: str, uid: int) -> bool:
-        limit = int(ACC_LIMITS.get(event_key, -1))
-        if limit == 0:
-            return False   # 该事件在累计模式下被关闭
-        if limit == -1:
-            return True    # 不限制
-        key   = (event_key, uid)
-        count = self._counts.get(key, 0)
-        if count >= limit:
-            return False
-        self._counts[key] = count + 1
-        return True
-
-_acc_counter = AccumulateCounter()
 
 # ── DG-Lab 强度控制 ───────────────────────────────────────────────────────────
 session: Optional[aiohttp.ClientSession] = None
@@ -131,23 +112,6 @@ async def _pulse(add: int, duration):
     await asyncio.sleep(parse_duration(duration))
     await _strength(sub=add)
 
-def fire(event_key: str, uid: int, default_add: int, duration) -> bool:
-    """
-    触发强度变化，返回是否实际触发。
-    累计模式：只加不减，使用 ACC_STRENGTH 中的专属强度（没配则用 default_add）
-    普通模式：加完等待后减回来，使用 default_add
-    """
-    if ACC_ENABLED:
-        if not _acc_counter.allow(event_key, uid):
-            logger.debug(f"[累计] {event_key} uid={uid} 已达上限或已关闭，忽略")
-            return False
-        add = ACC_STRENGTH.get(event_key) or default_add
-        asyncio.create_task(_strength(add=add))
-        return True
-    else:
-        asyncio.create_task(_pulse(default_add, duration))
-        return True
-
 def match_tier(tiers: list, price: float) -> Optional[dict]:
     return next((t for t in tiers if price >= t["min_price"]), None)
 
@@ -164,25 +128,21 @@ class MyHandler(blivedm.BaseHandler):
         if not DANMAKU_CFG.get("enabled", True):
             return
         if not _rate_limiter.allow(message.uid):
-            logger.debug(f"[限流] {message.uname} 弹幕过于频繁，忽略")
+            logger.info(f"[弹幕] {message.uname}：{message.msg} (已达限流上限)")
             return
 
         add      = DANMAKU_CFG["strength_add"]
         duration = DANMAKU_CFG["duration"]
-        actual   = (ACC_STRENGTH.get("danmaku") or add) if ACC_ENABLED else add
-        mode     = "累计" if ACC_ENABLED else fmt_duration(duration)
-        logger.info(f"[弹幕] {message.uname}：{message.msg} → +{actual} / {mode}")
-        fire("danmaku", message.uid, add, duration)
+        logger.info(f"[弹幕] {message.uname}：{message.msg} → +{add} / {fmt_duration(duration)}")
+        asyncio.create_task(_pulse(add, duration))
 
         # 舰长额外加成
         if GUARD_BONUS_ENABLED and message.privilege_type in GUARD_BONUS_CFG:
-            bonus  = GUARD_BONUS_CFG[message.privilege_type]
-            badd   = bonus["strength_add"]
-            actual = (ACC_STRENGTH.get("danmaku_guard_bonus") or badd) if ACC_ENABLED else badd
-            name   = GUARD_NAME.get(message.privilege_type, "")
-            bmode  = "累计" if ACC_ENABLED else fmt_duration(bonus["duration"])
-            logger.info(f"[弹幕·{name}加成] {message.uname} → +{actual} / {bmode}")
-            fire("danmaku_guard_bonus", message.uid, badd, bonus["duration"])
+            bonus = GUARD_BONUS_CFG[message.privilege_type]
+            badd  = bonus["strength_add"]
+            name  = GUARD_NAME.get(message.privilege_type, "")
+            logger.info(f"[弹幕·{name}加成] {message.uname} → +{badd} / {fmt_duration(bonus['duration'])}")
+            asyncio.create_task(_pulse(badd, bonus["duration"]))
 
     def _on_gift(self, client, message: web_models.GiftMessage):
         if not cfg["gift"].get("enabled", True) or message.coin_type != "gold":
@@ -192,11 +152,9 @@ class MyHandler(blivedm.BaseHandler):
         if tier is None:
             logger.info(f"[礼物] {message.uname} {message.gift_name} x{message.num}（¥{price:.2f}）→ 未达最低档位")
             return
-        add    = tier["strength_add"]
-        actual = (ACC_STRENGTH.get("gift") or add) if ACC_ENABLED else add
-        mode   = "累计" if ACC_ENABLED else fmt_duration(tier["duration"])
-        logger.info(f"[礼物] {message.uname} {message.gift_name} x{message.num}（¥{price:.2f}）→ +{actual} / {mode}")
-        fire("gift", message.uid, add, tier["duration"])
+        add = tier["strength_add"]
+        logger.info(f"[礼物] {message.uname} {message.gift_name} x{message.num}（¥{price:.2f}）→ +{add} / {fmt_duration(tier['duration'])}")
+        asyncio.create_task(_pulse(add, tier["duration"]))
 
     def _on_super_chat(self, client, message: web_models.SuperChatMessage):
         if not cfg["super_chat"].get("enabled", True):
@@ -205,11 +163,9 @@ class MyHandler(blivedm.BaseHandler):
         if tier is None:
             logger.info(f"[SC ¥{message.price}] {message.uname}：{message.message} → 未达最低档位")
             return
-        add    = tier["strength_add"]
-        actual = (ACC_STRENGTH.get("super_chat") or add) if ACC_ENABLED else add
-        mode   = "累计" if ACC_ENABLED else fmt_duration(tier["duration"])
-        logger.info(f"[SC ¥{message.price}] {message.uname}：{message.message} → +{actual} / {mode}")
-        fire("super_chat", message.uid, add, tier["duration"])
+        add = tier["strength_add"]
+        logger.info(f"[SC ¥{message.price}] {message.uname}：{message.message} → +{add} / {fmt_duration(tier['duration'])}")
+        asyncio.create_task(_pulse(add, tier["duration"]))
 
     def _on_interact_word_v2(self, client, message: web_models.InteractWordV2Message):
         key_map  = {1: "enter", 2: "follow", 3: "share", 4: "special_follow"}
@@ -220,12 +176,9 @@ class MyHandler(blivedm.BaseHandler):
         ecfg = INTERACT_CFG.get(key, {})
         if not ecfg.get("enabled", False):
             return
-        event_key = f"interact_{key}"
-        add       = ecfg["strength_add"]
-        actual    = (ACC_STRENGTH.get(event_key) or add) if ACC_ENABLED else add
-        mode      = "累计" if ACC_ENABLED else fmt_duration(ecfg["duration"])
-        logger.info(f"[{name_map[message.msg_type]}] {message.username} → +{actual} / {mode}")
-        fire(event_key, message.uid, add, ecfg["duration"])
+        add = ecfg["strength_add"]
+        logger.info(f"[{name_map[message.msg_type]}] {message.username} → +{add} / {fmt_duration(ecfg['duration'])}")
+        asyncio.create_task(_pulse(add, ecfg["duration"]))
 
     def _on_user_toast_v2(self, client, message: web_models.UserToastV2Message):
         if not cfg["guard"].get("enabled", True) or message.source == 2:
@@ -233,12 +186,10 @@ class MyHandler(blivedm.BaseHandler):
         lcfg = GUARD_LEVELS.get(message.guard_level)
         if lcfg is None:
             return
-        add    = lcfg["strength_add"]
-        actual = (ACC_STRENGTH.get("guard") or add) if ACC_ENABLED else add
-        name   = GUARD_NAME.get(message.guard_level, "舰长")
-        mode   = "累计" if ACC_ENABLED else fmt_duration(lcfg["duration"])
-        logger.info(f"[上舰] {message.username} 开通{name} → +{actual} / {mode}")
-        fire("guard", message.uid, add, lcfg["duration"])
+        add  = lcfg["strength_add"]
+        name = GUARD_NAME.get(message.guard_level, "舰长")
+        logger.info(f"[上舰] {message.username} 开通{name} → +{add} / {fmt_duration(lcfg['duration'])}")
+        asyncio.create_task(_pulse(add, lcfg["duration"]))
 
 # ── 主程序 ────────────────────────────────────────────────────────────────────
 async def main():
