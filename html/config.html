@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>配置 - DG-Lab Bilibili 控制面板</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h1>🎮 DG-Lab</h1>
+        <div class="nav">
+            <a href="/">📊 首页</a>
+            <a href="/config.html" class="active">⚙️ 配置</a>
+            <a href="/obs.html">🎬 OBS</a>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #252540;">
+            <div style="color: #888; font-size: 12px; margin-bottom: 10px;">快速导航</div>
+            <div class="nav">
+                <a href="#bilibili" class="nav-link">🔵 Bilibili</a>
+                <a href="#dglab" class="nav-link">🎮 DG-Lab</a>
+                <a href="#webui" class="nav-link">🌐 WebUI</a>
+                <a href="#danmaku" class="nav-link">💬 弹幕</a>
+                <a href="#gift" class="nav-link">🎁 礼物</a>
+                <a href="#sc" class="nav-link">💰 醒目留言</a>
+                <a href="#guard" class="nav-link">⚓ 上舰</a>
+                <a href="#interact" class="nav-link">👋 互动</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="container">
+        
+        <div class="card" id="bilibili">
+            <h2>🔧 Bilibili 配置</h2>
+            <div class="form-group">
+                <label>直播间 ID</label>
+                <input type="number" id="room-id" placeholder="例如: 1796101901">
+            </div>
+            <div class="form-group">
+                <label>SESSDATA (Cookie)</label>
+                <input type="text" id="sessdata" placeholder="从浏览器获取的 SESSDATA">
+                <small>用于获取直播间完整ID</small>
+            </div>
+        </div>
+        
+        <div class="card" id="dglab">
+            <h2>🎮 DG-Lab 配置</h2>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="dglab-enabled">
+                    启用郊狼控制器
+                </label>
+                <small>关闭后将不会发送任何控制指令到郊狼设备</small>
+            </div>
+            <div class="form-group">
+                <label>控制器 URL</label>
+                <input type="text" id="controller-url" placeholder="http://127.0.0.1:8920">
+            </div>
+            <div class="form-group">
+                <label>控制器 ID</label>
+                <input type="text" id="controller-id" placeholder="all">
+                <small>通常使用 "all" 控制所有通道</small>
+            </div>
+        </div>
+        
+        <div class="card" id="webui">
+            <h2>🌐 WebUI 配置</h2>
+            <div class="form-group">
+                <label>监听地址</label>
+                <input type="text" id="webui-host" placeholder="0.0.0.0">
+                <small>0.0.0.0 表示监听所有网卡，127.0.0.1 仅本机访问</small>
+            </div>
+            <div class="form-group">
+                <label>监听端口</label>
+                <input type="number" id="webui-port" min="1" max="65535" placeholder="8080">
+                <small>修改后需要重启程序才能生效</small>
+            </div>
+        </div>
+        
+        <div class="card" id="danmaku">
+            <h2>💬 弹幕配置</h2>
+            <div class="compact-grid">
+                <div class="compact-card">
+                    <h3>基础设置</h3>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="danmaku-enabled">
+                            启用弹幕触发
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>强度增加</label>
+                        <input type="number" id="danmaku-strength" min="1" max="100" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>持续时间</label>
+                        <input type="text" id="danmaku-duration" placeholder="30s">
+                    </div>
+                </div>
+                
+                <div class="compact-card">
+                    <h3>限流设置</h3>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rate-limit-enabled">
+                            启用限流
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>时间窗口</label>
+                        <input type="text" id="rate-limit-window" placeholder="1m">
+                    </div>
+                    <div class="form-group">
+                        <label>最大次数</label>
+                        <input type="number" id="rate-limit-count" min="1" value="5">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" id="gift">
+            <h2>🎁 礼物配置</h2>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="gift-enabled">
+                    启用礼物触发
+                </label>
+            </div>
+            <div id="gift-tiers"></div>
+            <button onclick="addGiftTier()" class="btn-secondary">+ 添加档位</button>
+        </div>
+        
+        <div class="card" id="sc">
+            <h2>💰 醒目留言配置</h2>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="sc-enabled">
+                    启用醒目留言触发
+                </label>
+            </div>
+            <div id="sc-tiers"></div>
+            <button onclick="addSCTier()" class="btn-secondary">+ 添加档位</button>
+        </div>
+        
+        <div class="card" id="guard">
+            <h2>⚓ 上舰配置</h2>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="guard-enabled">
+                    启用上舰触发
+                </label>
+            </div>
+            <div class="compact-grid">
+                <div class="compact-card">
+                    <h3>舰长 (¥198/月)</h3>
+                    <div class="form-group">
+                        <label>强度</label>
+                        <input type="number" id="guard-3-strength" min="1" placeholder="强度">
+                    </div>
+                    <div class="form-group">
+                        <label>持续时间</label>
+                        <input type="text" id="guard-3-duration" placeholder="5m">
+                    </div>
+                </div>
+                <div class="compact-card">
+                    <h3>提督 (¥1998/月)</h3>
+                    <div class="form-group">
+                        <label>强度</label>
+                        <input type="number" id="guard-2-strength" min="1" placeholder="强度">
+                    </div>
+                    <div class="form-group">
+                        <label>持续时间</label>
+                        <input type="text" id="guard-2-duration" placeholder="10m">
+                    </div>
+                </div>
+                <div class="compact-card">
+                    <h3>总督 (¥19998/月)</h3>
+                    <div class="form-group">
+                        <label>强度</label>
+                        <input type="number" id="guard-1-strength" min="1" placeholder="强度">
+                    </div>
+                    <div class="form-group">
+                        <label>持续时间</label>
+                        <input type="text" id="guard-1-duration" placeholder="15m">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" id="interact">
+            <h2>👋 互动配置</h2>
+            <div class="compact-grid">
+                <div class="compact-card">
+                    <h3>进入房间</h3>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="interact-enter-enabled">
+                            启用
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>强度</label>
+                        <input type="number" id="interact-enter-strength" placeholder="强度">
+                    </div>
+                    <div class="form-group">
+                        <label>持续时间</label>
+                        <input type="text" id="interact-enter-duration" placeholder="30s">
+                    </div>
+                </div>
+                
+                <div class="compact-card">
+                    <h3>关注主播</h3>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="interact-follow-enabled">
+                            启用
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>强度</label>
+                        <input type="number" id="interact-follow-strength" placeholder="强度">
+                    </div>
+                    <div class="form-group">
+                        <label>持续时间</label>
+                        <input type="text" id="interact-follow-duration" placeholder="30s">
+                    </div>
+                </div>
+                
+                <div class="compact-card">
+                    <h3>分享直播间</h3>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="interact-share-enabled">
+                            启用
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>强度</label>
+                        <input type="number" id="interact-share-strength" placeholder="强度">
+                    </div>
+                    <div class="form-group">
+                        <label>持续时间</label>
+                        <input type="text" id="interact-share-duration" placeholder="1m">
+                    </div>
+                </div>
+                
+                <div class="compact-card">
+                    <h3>特别关注</h3>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="interact-special-follow-enabled">
+                            启用
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>强度</label>
+                        <input type="number" id="interact-special-follow-strength" placeholder="强度">
+                    </div>
+                    <div class="form-group">
+                        <label>持续时间</label>
+                        <input type="text" id="interact-special-follow-duration" placeholder="30s">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="button-group">
+                <button onclick="saveConfig()" class="btn-primary">💾 保存配置</button>
+                <button onclick="loadConfig()" class="btn-secondary">🔄 重新加载</button>
+            </div>
+            <div id="save-message"></div>
+        </div>
+        
+        </div>
+    </div>
+    
+    <script src="/static/config.js"></script>
+</body>
+</html>

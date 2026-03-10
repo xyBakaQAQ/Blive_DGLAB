@@ -1,110 +1,99 @@
-# Bilibili 直播间配置
 bilibili:
   room_id: 1796101901
-  sessdata: ""
-
-# DG-Lab 控制器配置
-dglab:
-  controller_url: "http://127.0.0.1:8920"
-  controller_id: "all"
-
-# 弹幕触发配置
+  sessdata: ''
 danmaku:
+  duration: 30s
   enabled: true
-  strength_add: 1
-  duration: "30s"
-  rate_limit:
-    enabled: true        # 是否启用限流
-    time_window: "1m"    # 时间窗口（1分钟内）
-    max_count: 5         # 同一个人最多触发5次
-  guard_bonus:           # 舰长/提督/总督发弹幕时的额外强度叠加（在基础 strength_add 之上再加）
-    enabled: false       # 舰长加成总开关
-    3: # 舰长
-      strength_add: 2
-      duration: "30s"
-    2: # 提督
-      strength_add: 4
-      duration: "30s"
-    1: # 总督
+  guard_bonus:
+    '1':
+      duration: 30s
       strength_add: 6
-      duration: "30s"
-
-# 互动事件触发配置
-interact:
-  enter:           # 进入房间
+    '2':
+      duration: 30s
+      strength_add: 4
+    '3':
+      duration: 30s
+      strength_add: 2
     enabled: false
-    strength_add: 1
-    duration: "30s"
-  follow:          # 关注主播
-    enabled: false
-    strength_add: 3
-    duration: "30s"
-  share:           # 分享直播间
+  rate_limit:
     enabled: true
-    strength_add: 2
-    duration: "1m"
-  special_follow:  # 特别关注
-    enabled: false
-    strength_add: 2
-    duration: "30s"
-
-# 金瓜子礼物档位（total_coin / 1000 = 元）
+    max_count: 5
+    time_window: 1m
+  strength_add: 1
+dglab:
+  controller_id: all
+  controller_url: http://127.0.0.1:8920
+  enabled: true
 gift:
   enabled: true
   tiers:
-    - min_price: 0.1
-      strength_add: 5
-      duration: "2m"
-    - min_price: 1.0
-      strength_add: 8
-      duration: "3m"
-    - min_price: 5.0
-      strength_add: 12
-      duration: "4m"
-    - min_price: 10.0
-      strength_add: 16
-      duration: "8m"
-    - min_price: 30.0
-      strength_add: 20
-      duration: "15m"
-    - min_price: 50.0
-      strength_add: 25
-      duration: "20m"
-    - min_price: 100.0
-      strength_add: 30
-      duration: "30m"
-
-# 醒目留言档位（price 直接是元）
-super_chat:
-  enabled: true
-  tiers:
-    - min_price: 30
-      strength_add: 15
-      duration: "10m"
-    - min_price: 50
-      strength_add: 20
-      duration: "15m"
-    - min_price: 100
-      strength_add: 25
-      duration: "20m"
-    - min_price: 500
-      strength_add: 35
-      duration: "30m"
-
-# 舰长档位
+  - duration: 2m
+    min_price: 0.1
+    strength_add: 5
+  - duration: 3m
+    min_price: 1
+    strength_add: 8
+  - duration: 4m
+    min_price: 5
+    strength_add: 12
+  - duration: 8m
+    min_price: 10
+    strength_add: 16
+  - duration: 15m
+    min_price: 30
+    strength_add: 20
+  - duration: 20m
+    min_price: 50
+    strength_add: 25
+  - duration: 30m
+    min_price: 100
+    strength_add: 30
 guard:
   enabled: true
   levels:
-    3:  # 舰长 ¥198/月
-      strength_add: 20
-      duration: "5m"
-    2:  # 提督 ¥1998/月
-      strength_add: 30
-      duration: "10m"
-    1:  # 总督 ¥19998/月
+    '1':
+      duration: 15m
       strength_add: 40
-      duration: "15m"
-
-# 日志配置
+    '2':
+      duration: 10m
+      strength_add: 30
+    '3':
+      duration: 5m
+      strength_add: 20
+interact:
+  enter:
+    duration: 30s
+    enabled: false
+    strength_add: 1
+  follow:
+    duration: 30s
+    enabled: false
+    strength_add: 3
+  share:
+    duration: 1m
+    enabled: true
+    strength_add: 2
+  special_follow:
+    duration: 30s
+    enabled: false
+    strength_add: 2
 log:
-  level: "INFO"
+  level: INFO
+super_chat:
+  enabled: true
+  tiers:
+  - duration: 10m
+    min_price: 30
+    strength_add: 15
+  - duration: 15m
+    min_price: 50
+    strength_add: 20
+  - duration: 20m
+    min_price: 100
+    strength_add: 25
+  - duration: 30m
+    min_price: 500
+    strength_add: 35
+webui:
+  host: 127.0.0.1
+  port: 8080

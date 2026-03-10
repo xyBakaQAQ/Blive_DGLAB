@@ -12,10 +12,11 @@
 
 ---
 
-这是一个将 Bilibili 直播间互动与 DG-Lab 联动的程序。
+这是一个将 Bilibili 直播间互动与 DG-Lab 联动的程序，提供 Web UI 管理界面
 
 ## 功能特性
 
+### 核心功能
 - **弹幕触发**：观众发送弹幕时触发强度脉冲
   - 支持舰长/提督/总督额外加成（可选）
   - 支持限流：X分钟内同一用户最多触发X次
@@ -23,79 +24,70 @@
 - **醒目留言**：Super Chat 按价格档位触发
 - **上舰联动**：用户开通舰长/提督/总督时触发
 - **互动事件**：进房、关注、分享、特别关注等事件触发
-- **灵活配置**：通过 YAML 配置文件管理所有参数
+
+### Web UI 功能
+- **实时监控**：分别显示弹幕日志和郊狼控制日志
+- **在线配置**：通过 Web 界面修改所有配置，保存后立即生效
+- **OBS 集成**：提供 OBS 浏览器源页面，实时显示弹幕和郊狼强度信息
+- **响应式设计**：侧边栏导航，支持快速定位配置项
 
 ## 环境要求
 
 - Python 3.13 及以上版本
-- Bilibili （自行获取 SESSDATA）
 - [DG-Lab Coyote Game Hub](https://github.com/hyperzlib/DG-Lab-Coyote-Game-Hub)（第三方库，用于控制器通信）
 
 ## 依赖项目
 
 本项目依赖以下开源项目：
 
+- **[blivedm](https://github.com/xfgryujk/blivedm)** - Bilibili 直播弹幕库，提供直播间事件监听功能
 - **[DG-Lab Coyote Game Hub](https://github.com/hyperzlib/DG-Lab-Coyote-Game-Hub)** - DG-Lab 设备的开源控制中心，提供 HTTP API 接口支持
 
-## 使用
+## 快速开始
 
-1. 克隆或下载本项目
-
-2. 安装依赖包
-
-    ```sh
-    pip install -r requirements.txt
-    ```
-
-## 配置
-
-请在 `config.yaml` 中填写直播间 ID、SESSDATA、以及 DG‑Lab 控制器地址等必要信息。
-
-> **注意**：SESSDATA 用于获取用户名，若未填写则无法获取用户信息
-
-> 不要将含有真实 SESSDATA 的配置文件上传到公开仓库
-
-### 主要配置项
-
-#### 弹幕配置
-```yaml
-danmaku:
-  enabled: true          # 是否启用弹幕触发
-  strength_add: 1        # 触发强度
-  duration: "30s"        # 持续时间
-  rate_limit:
-    enabled: true        # 是否启用限流
-    time_window: "1m"    # 时间窗口（1分钟内）
-    max_count: 5         # 同一个人最多触发5次
-  guard_bonus:           # 舰长弹幕加成
-    enabled: false       # 舰长加成总开关
-```
-
-#### 礼物档位
-```yaml
-gift:
-  enabled: true
-  tiers:
-    - min_price: 0.1     # 最低价格（元）
-      strength_add: 5    # 触发强度
-      duration: "2m"     # 持续时间
-```
-
-#### 其他事件
-- **互动事件**：进房、关注、分享等
-- **醒目留言**：按价格档位配置
-- **上舰**：按舰长等级配置
-
-详细配置请参考 `config.yaml` 文件中的注释说明。
-
-
-## 使用方法
-
-### 运行应用
+### 1. 安装依赖
 
 ```sh
-python dglab.py
+pip install -r requirements.txt
 ```
+
+### 2. 配置文件
+
+编辑 `config.yaml` 文件，填写必要信息：
+
+```yaml
+# Bilibili 直播间配置
+bilibili:
+  room_id: 1796101901    # 你的直播间 ID
+  sessdata: ""           # 从浏览器获取的 SESSDATA
+
+# DG-Lab 控制器配置
+dglab:
+  enabled: true          # 是否启用郊狼控制器
+  controller_url: "http://127.0.0.1:8920"
+  controller_id: "all"
+
+# WebUI 配置
+webui:
+  host: "0.0.0.0"        # 监听地址
+  port: 8080             # 监听端口
+```
+
+### 3. 运行程序
+
+```sh
+python main.py
+```
+
+### 4. 访问 Web UI
+
+打开浏览器访问：`http://localhost:8080`
+
+- **首页**：查看实时日志和运行状态
+- **配置**：在线修改所有配置项
+- **OBS**：获取 OBS 浏览器源链接
+
+## 配置说明
 
 ### 获取 SESSDATA
 
@@ -116,10 +108,63 @@ python dglab.py
 5. 复制导出的 SESSDATA
 6. 填入 `config.yaml` 的 `sessdata` 字段
 
-**优点**：无需手动提取 SESSDATA (?)
-
 </details>
 
+## OBS 集成
+
+### OBS 显示内容
+
+- 从下往上滚动的弹幕
+- 用户名和舰长徽章
+- 发送时间
+- 郊狼强度和持续时间
+- 礼物、SC、上舰等特殊消息
+
+## 项目结构
+
+```
+.
+├── main.py              # 主程序入口
+├── bilibili.py          # Bilibili 直播监听模块
+├── dglab.py             # DG-Lab 控制器模块
+├── web.py               # Web UI 服务器
+├── utils.py             # 工具函数（时间解析等）
+├── config.yaml          # 配置文件
+├── requirements.txt     # Python 依赖
+├── html/                # Web UI 前端文件
+│   ├── index.html       # 首页
+│   ├── config.html      # 配置页面
+│   ├── obs.html         # OBS 页面
+│   └── static/          # 静态资源
+│       ├── style.css    # 主样式
+│       ├── obs.css      # OBS 样式
+│       ├── app.js       # 首页脚本
+│       ├── config.js    # 配置页脚本
+│       └── obs.js       # OBS 脚本
+└── blivedm/             # Bilibili 直播弹幕库
+```
+
+## 常见问题
+
+### 配置修改后需要重启吗？
+
+大部分配置（弹幕、礼物、SC、上舰等）保存后立即生效，无需重启。但以下配置需要重启：
+- WebUI 的 host 和 port
+- Bilibili 的 room_id 和 sessdata
+
+### 如何禁用郊狼控制？
+
+在配置页面取消勾选 **启用郊狼控制器**，或在 `config.yaml` 中设置：
+```yaml
+dglab:
+  enabled: false
+```
+
+### OBS 页面刷新后没有历史弹幕？
+
+OBS 页面会自动加载最近 50 条弹幕历史记录。如果没有显示，请检查：
+1. 程序是否正常运行
+2. WebSocket 连接是否正常（查看浏览器控制台）
 
 ## 许可证
 
@@ -129,8 +174,8 @@ python dglab.py
 
 感谢以下项目的支持与贡献：
 
-- **[blivedm](https://github.com/xfgryujk/blivedm)** - Bilibili 直播弹幕库，提供直播间事件监听功能
-- **[DG-Lab Coyote Game Hub](https://github.com/hyperzlib/DG-Lab-Coyote-Game-Hub)** - DG-Lab 设备的开源控制中心，提供 HTTP API 接口支持
+- **[blivedm](https://github.com/xfgryujk/blivedm)** - Bilibili 直播弹幕库
+- **[DG-Lab Coyote Game Hub](https://github.com/hyperzlib/DG-Lab-Coyote-Game-Hub)** - DG-Lab 设备控制中心
 
 ## 反馈与贡献
 

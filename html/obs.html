@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OBS 弹幕显示 - DG-Lab Bilibili 控制面板</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/obs.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h1>🎮 DG-Lab</h1>
+        <div class="nav">
+            <a href="/">📊 首页</a>
+            <a href="/config.html">⚙️ 配置</a>
+            <a href="/obs.html" class="active">🎬 OBS</a>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="container">
+            <div class="card">
+                <h2>🎬 OBS 弹幕显示</h2>
+                <div class="obs-url-container">
+                    <input type="text" id="obs-url" readonly>
+                    <button onclick="copyObsUrl()">📋 复制链接</button>
+                </div>
+                <div class="obs-instructions">
+                    <h3>使用说明：</h3>
+                    <ol>
+                        <li>点击"复制链接"按钮复制 OBS 浏览器源地址</li>
+                        <li>在 OBS 中添加"浏览器"源</li>
+                        <li>粘贴复制的链接到 URL 栏</li>
+                        <li>勾选"关闭源时刷新浏览器"</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📺 实时预览</h2>
+                <div class="obs-preview-container">
+                    <div id="danmaku-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/obs.js"></script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+/* OBS 页面特定样式 */
+.obs-url-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.obs-url-container input {
+    flex: 1;
+    background: #0a0a15;
+    border: 1px solid #333;
+    color: #e0e0e0;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: monospace;
+}
+
+.obs-url-container button {
+    padding: 12px 24px;
+    white-space: nowrap;
+}
+
+.obs-instructions {
+    background: #0a0a15;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.obs-instructions h3 {
+    color: #00d9ff;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.obs-instructions ol {
+    margin-left: 20px;
+    color: #e0e0e0;
+    line-height: 1.8;
+}
+
+.obs-instructions li {
+    margin-bottom: 8px;
+}
+
+.obs-preview-container {
+    background: #0a0a15;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 500px;
+    position: relative;
+}
+
+/* 弹幕容器 - OBS 预览模式 */
+#danmaku-container {
+    position: relative;
+    width: 100%;
+    max-width: 450px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 1vh;
+}
+
+/* 弹幕项 */
+.danmaku-item {
+    background: rgba(26, 26, 46, 0.95);
+    border-left: 4px solid #00d9ff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease-out;
+    backdrop-filter: blur(10px);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 用户信息 */
+.danmaku-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.danmaku-username {
+    color: #00d9ff;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.danmaku-time {
+    color: #888;
+    font-size: 12px;
+    margin-left: auto;
+}
+
+.danmaku-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.danmaku-badge.guard-1 {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.danmaku-badge.guard-2 {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.danmaku-badge.guard-3 {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+/* 弹幕内容 */
+.danmaku-message {
+    color: #e0e0e0;
+    font-size: 18px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+/* 郊狼信息 */
+.dglab-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 217, 255, 0.2);
+    flex-wrap: wrap;
+}
+
+.dglab-strength {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #00ff88;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.dglab-strength-icon {
+    font-size: 18px;
+}
+
+.dglab-duration {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #ffaa00;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.dglab-duration-icon {
+    font-size: 16px;
+}
+
+/* 礼物/SC 样式 */
+.danmaku-item.gift {
+    border-left-color: #ff6b9d;
+    background: rgba(255, 107, 157, 0.15);
+}
+
+.danmaku-item.sc {
+    border-left-color: #ffd700;
+    background: rgba(255, 215, 0, 0.15);
+}
+
+.danmaku-item.guard {
+    border-left-color: #ff4444;
+    background: rgba(255, 68, 68, 0.15);
+}
+
+.gift-name {
+    color: #ff6b9d;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.gift-count {
+    color: #ffaa00;
+    font-weight: 600;
+}
+
+.gift-price {
+    color: #00ff88;
+    font-weight: 600;
+}
