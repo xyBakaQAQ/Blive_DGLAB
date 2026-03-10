@@ -48,6 +48,7 @@ class WebUI:
         self.app.router.add_get('/', self.handle_index)
         self.app.router.add_get('/config.html', self.handle_config_page)
         self.app.router.add_get('/obs.html', self.handle_obs_page)
+        self.app.router.add_get('/obs-source.html', self.handle_obs_source_page)
         
         # API 路由
         self.app.router.add_get('/api/config', self.handle_get_config)
@@ -127,6 +128,12 @@ class WebUI:
     async def handle_obs_page(self, request):
         """OBS 页面"""
         html_path = os.path.join(os.path.dirname(__file__), "html", "obs.html")
+        with open(html_path, 'r', encoding='utf-8') as f:
+            return web.Response(text=f.read(), content_type='text/html')
+    
+    async def handle_obs_source_page(self, request):
+        """OBS 浏览器源页面"""
+        html_path = os.path.join(os.path.dirname(__file__), "html", "obs-source.html")
         with open(html_path, 'r', encoding='utf-8') as f:
             return web.Response(text=f.read(), content_type='text/html')
     

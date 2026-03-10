@@ -47,28 +47,34 @@ function addDanmaku(data) {
         badgeHtml = `<span class="danmaku-badge guard-${data.guard_level}">${guardNames[data.guard_level]}</span>`;
     }
     
+    // 只在有头像URL时才显示头像
+    const avatarHtml = data.face ? `<img src="${escapeHtml(data.face)}" class="danmaku-avatar" crossorigin="anonymous" referrerpolicy="no-referrer">` : '';
+    
     item.innerHTML = `
-        <div class="danmaku-user">
-            <span class="danmaku-username">${escapeHtml(data.username)}</span>
-            ${badgeHtml}
-            <span class="danmaku-time">${getCurrentTime()}</span>
-        </div>
-        <div class="danmaku-message">${escapeHtml(data.message)}</div>
-        ${data.dglab ? `
-        <div class="dglab-info">
-            <div class="dglab-strength">
-                <span class="dglab-strength-icon">⚡</span>
-                <span>+${data.dglab.strength}</span>
+        ${avatarHtml}
+        <div class="danmaku-content">
+            <div class="danmaku-user">
+                <span class="danmaku-username">${escapeHtml(data.username)}</span>
+                ${badgeHtml}
+                <span class="danmaku-time">${getCurrentTime()}</span>
             </div>
-            <div class="dglab-duration">
-                <span class="dglab-duration-icon">⏱️</span>
-                <span>${data.dglab.duration}</span>
+            <div class="danmaku-message">${escapeHtml(data.message)}</div>
+            ${data.dglab ? `
+            <div class="dglab-info">
+                <div class="dglab-strength">
+                    <span class="dglab-strength-icon">⚡</span>
+                    <span>+${data.dglab.strength}</span>
+                </div>
+                <div class="dglab-duration">
+                    <span class="dglab-duration-icon">⏱️</span>
+                    <span>${data.dglab.duration}</span>
+                </div>
             </div>
+            ` : ''}
         </div>
-        ` : ''}
     `;
     
-    container.insertBefore(item, container.firstChild);
+    container.appendChild(item);
     limitItems();
 }
 
@@ -76,31 +82,36 @@ function addGift(data) {
     const item = document.createElement('div');
     item.className = 'danmaku-item gift';
     
+    const avatarHtml = data.face ? `<img src="${escapeHtml(data.face)}" class="danmaku-avatar" crossorigin="anonymous" referrerpolicy="no-referrer">` : '';
+    
     item.innerHTML = `
-        <div class="danmaku-user">
-            <span class="danmaku-username">${escapeHtml(data.username)}</span>
-            <span class="danmaku-time">${getCurrentTime()}</span>
-        </div>
-        <div class="danmaku-message">
-            赠送 <span class="gift-name">${escapeHtml(data.gift_name)}</span> 
-            <span class="gift-count">x${data.count}</span>
-            <span class="gift-price">¥${data.price}</span>
-        </div>
-        ${data.dglab ? `
-        <div class="dglab-info">
-            <div class="dglab-strength">
-                <span class="dglab-strength-icon">⚡</span>
-                <span>+${data.dglab.strength}</span>
+        ${avatarHtml}
+        <div class="danmaku-content">
+            <div class="danmaku-user">
+                <span class="danmaku-username">${escapeHtml(data.username)}</span>
+                <span class="danmaku-time">${getCurrentTime()}</span>
             </div>
-            <div class="dglab-duration">
-                <span class="dglab-duration-icon">⏱️</span>
-                <span>${data.dglab.duration}</span>
+            <div class="danmaku-message">
+                赠送 <span class="gift-name">${escapeHtml(data.gift_name)}</span> 
+                <span class="gift-count">x${data.count}</span>
+                <span class="gift-price">¥${data.price}</span>
             </div>
+            ${data.dglab ? `
+            <div class="dglab-info">
+                <div class="dglab-strength">
+                    <span class="dglab-strength-icon">⚡</span>
+                    <span>+${data.dglab.strength}</span>
+                </div>
+                <div class="dglab-duration">
+                    <span class="dglab-duration-icon">⏱️</span>
+                    <span>${data.dglab.duration}</span>
+                </div>
+            </div>
+            ` : ''}
         </div>
-        ` : ''}
     `;
     
-    container.insertBefore(item, container.firstChild);
+    container.appendChild(item);
     limitItems();
 }
 
@@ -108,28 +119,33 @@ function addSuperChat(data) {
     const item = document.createElement('div');
     item.className = 'danmaku-item sc';
     
+    const avatarHtml = data.face ? `<img src="${escapeHtml(data.face)}" class="danmaku-avatar" crossorigin="anonymous" referrerpolicy="no-referrer">` : '';
+    
     item.innerHTML = `
-        <div class="danmaku-user">
-            <span class="danmaku-username">${escapeHtml(data.username)}</span>
-            <span class="danmaku-badge">SC ¥${data.price}</span>
-            <span class="danmaku-time">${getCurrentTime()}</span>
-        </div>
-        <div class="danmaku-message">${escapeHtml(data.message)}</div>
-        ${data.dglab ? `
-        <div class="dglab-info">
-            <div class="dglab-strength">
-                <span class="dglab-strength-icon">⚡</span>
-                <span>+${data.dglab.strength}</span>
+        ${avatarHtml}
+        <div class="danmaku-content">
+            <div class="danmaku-user">
+                <span class="danmaku-username">${escapeHtml(data.username)}</span>
+                <span class="danmaku-badge">SC ¥${data.price}</span>
+                <span class="danmaku-time">${getCurrentTime()}</span>
             </div>
-            <div class="dglab-duration">
-                <span class="dglab-duration-icon">⏱️</span>
-                <span>${data.dglab.duration}</span>
+            <div class="danmaku-message">${escapeHtml(data.message)}</div>
+            ${data.dglab ? `
+            <div class="dglab-info">
+                <div class="dglab-strength">
+                    <span class="dglab-strength-icon">⚡</span>
+                    <span>+${data.dglab.strength}</span>
+                </div>
+                <div class="dglab-duration">
+                    <span class="dglab-duration-icon">⏱️</span>
+                    <span>${data.dglab.duration}</span>
+                </div>
             </div>
+            ` : ''}
         </div>
-        ` : ''}
     `;
     
-    container.insertBefore(item, container.firstChild);
+    container.appendChild(item);
     limitItems();
 }
 
@@ -159,14 +175,14 @@ function addGuard(data) {
         ` : ''}
     `;
     
-    container.insertBefore(item, container.firstChild);
+    container.appendChild(item);
     limitItems();
 }
 
 function limitItems() {
-    // 当超过最大数量时，移除最旧的（最后一个）
+    // 当超过最大数量时，移除最旧的（第一个）
     while (container.children.length > MAX_ITEMS) {
-        container.removeChild(container.lastChild);
+        container.removeChild(container.firstChild);
     }
 }
 
@@ -181,14 +197,12 @@ connectWebSocket();
 loadHistory();
 
 // 复制 OBS URL
-function copyObsUrl() {
+async function copyObsUrl() {
     const urlInput = document.getElementById('obs-url');
     if (urlInput) {
         const obsUrl = `${window.location.protocol}//${window.location.host}/obs-source.html`;
         urlInput.value = obsUrl;
-        urlInput.select();
-        document.execCommand('copy');
-        alert('链接已复制到剪贴板！');
+        await navigator.clipboard.writeText(obsUrl);
     }
 }
 

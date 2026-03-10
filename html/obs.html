@@ -25,21 +25,12 @@
                     <input type="text" id="obs-url" readonly>
                     <button onclick="copyObsUrl()">📋 复制链接</button>
                 </div>
-                <div class="obs-instructions">
-                    <h3>使用说明：</h3>
-                    <ol>
-                        <li>点击"复制链接"按钮复制 OBS 浏览器源地址</li>
-                        <li>在 OBS 中添加"浏览器"源</li>
-                        <li>粘贴复制的链接到 URL 栏</li>
-                        <li>勾选"关闭源时刷新浏览器"</li>
-                    </ol>
-                </div>
             </div>
             
             <div class="card">
                 <h2>📺 实时预览</h2>
                 <div class="obs-preview-container">
-                    <div id="danmaku-container"></div>
+                    <iframe src="/obs-source.html" style="width: 100%; height: 600px; border: none; background: transparent;"></iframe>
                 </div>
             </div>
         </div>

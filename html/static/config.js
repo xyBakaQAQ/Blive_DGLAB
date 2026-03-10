@@ -255,32 +255,3 @@ document.querySelectorAll('.nav-link').forEach(link => {
         }
     });
 });
-
-// OBS 弹窗功能
-function showObsModal() {
-    const modal = document.getElementById('obs-modal');
-    const urlInput = document.getElementById('obs-url');
-    const obsUrl = `${window.location.protocol}//${window.location.host}/obs.html`;
-    urlInput.value = obsUrl;
-    modal.style.display = 'block';
-}
-
-function closeObsModal() {
-    const modal = document.getElementById('obs-modal');
-    modal.style.display = 'none';
-}
-
-function copyObsUrl() {
-    const urlInput = document.getElementById('obs-url');
-    urlInput.select();
-    document.execCommand('copy');
-    alert('链接已复制到剪贴板！');
-}
-
-// 点击弹窗外部关闭
-window.onclick = function(event) {
-    const modal = document.getElementById('obs-modal');
-    if (event.target === modal) {
-        closeObsModal();
-    }
-}

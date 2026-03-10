@@ -39,6 +39,10 @@ async def main():
     session = aiohttp.ClientSession()
     session.cookie_jar.update_cookies(cookies)
 
+    # 初始化 Bilibili 客户端（先初始化客户端）
+    room_id = config["bilibili"]["room_id"]
+    client = blivedm.BLiveClient(room_id, session=session)
+
     # 初始化 DG-Lab 控制器
     dglab = DGLabController(
         controller_url=config["dglab"]["controller_url"],
@@ -64,9 +68,7 @@ async def main():
     webui_url = f"http://{browser_host}:{webui_port}"
     webbrowser.open(webui_url)
 
-    # 初始化 Bilibili 客户端
-    room_id = config["bilibili"]["room_id"]
-    client = blivedm.BLiveClient(room_id, session=session)
+    # 设置处理器并启动客户端
     handler = BilibiliHandler(config, dglab, webui)
     client.set_handler(handler)
     client.start()

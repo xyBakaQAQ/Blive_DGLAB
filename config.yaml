@@ -1,9 +1,21 @@
 bilibili:
   room_id: 1796101901
-  sessdata: ''
-danmaku:
-  duration: 30s
+  sessdata:
+dglab:
   enabled: true
+  controller_url: http://127.0.0.1:8920
+  controller_id: all
+webui:
+  host: 127.0.0.1
+  port: 8080
+danmaku:
+  enabled: true
+  strength_add: 1
+  duration: 30s
+  rate_limit:
+    enabled: true
+    time_window: 1m
+    max_count: 5
   guard_bonus:
     '1':
       duration: 30s
@@ -15,85 +27,73 @@ danmaku:
       duration: 30s
       strength_add: 2
     enabled: false
-  rate_limit:
+interact:
+  enter:
+    enabled: false
+    strength_add: 1
+    duration: 30s
+  follow:
+    enabled: false
+    strength_add: 3
+    duration: 30s
+  share:
     enabled: true
-    max_count: 5
-    time_window: 1m
-  strength_add: 1
-dglab:
-  controller_id: all
-  controller_url: http://127.0.0.1:8920
-  enabled: true
+    strength_add: 2
+    duration: 1m
+  special_follow:
+    enabled: false
+    strength_add: 2
+    duration: 30s
 gift:
   enabled: true
   tiers:
-  - duration: 2m
-    min_price: 0.1
+  - min_price: 0.1
     strength_add: 5
-  - duration: 3m
-    min_price: 1
+    duration: 2m
+  - min_price: 1
     strength_add: 8
-  - duration: 4m
-    min_price: 5
+    duration: 3m
+  - min_price: 5
     strength_add: 12
-  - duration: 8m
-    min_price: 10
+    duration: 4m
+  - min_price: 10
     strength_add: 16
-  - duration: 15m
-    min_price: 30
+    duration: 8m
+  - min_price: 30
     strength_add: 20
-  - duration: 20m
-    min_price: 50
+    duration: 15m
+  - min_price: 50
     strength_add: 25
-  - duration: 30m
-    min_price: 100
+    duration: 20m
+  - min_price: 100
     strength_add: 30
+    duration: 30m
+super_chat:
+  enabled: true
+  tiers:
+  - min_price: 30
+    strength_add: 15
+    duration: 10m
+  - min_price: 50
+    strength_add: 20
+    duration: 15m
+  - min_price: 100
+    strength_add: 25
+    duration: 20m
+  - min_price: 500
+    strength_add: 35
+    duration: 30m
 guard:
   enabled: true
   levels:
     '1':
-      duration: 15m
       strength_add: 40
+      duration: 15m
     '2':
-      duration: 10m
       strength_add: 30
+      duration: 10m
     '3':
-      duration: 5m
       strength_add: 20
-interact:
-  enter:
-    duration: 30s
-    enabled: false
-    strength_add: 1
-  follow:
-    duration: 30s
-    enabled: false
-    strength_add: 3
-  share:
-    duration: 1m
-    enabled: true
-    strength_add: 2
-  special_follow:
-    duration: 30s
-    enabled: false
-    strength_add: 2
+      duration: 5m
 log:
   level: INFO
-super_chat:
-  enabled: true
-  tiers:
-  - duration: 10m
-    min_price: 30
-    strength_add: 15
-  - duration: 15m
-    min_price: 50
-    strength_add: 20
-  - duration: 20m
-    min_price: 100
-    strength_add: 25
-  - duration: 30m
-    min_price: 500
-    strength_add: 35
-webui:
-  host: 127.0.0.1
-  port: 8080

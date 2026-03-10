@@ -75,6 +75,7 @@ class BilibiliHandler(blivedm.BaseHandler):
         if self.webui:
             asyncio.create_task(self.webui.broadcast_to_obs('danmaku', {
                 'username': message.uname,
+                'face': message.face,
                 'message': message.msg,
                 'guard_level': message.privilege_type if message.privilege_type in [1, 2, 3] else None,
                 'dglab': {
@@ -111,6 +112,7 @@ class BilibiliHandler(blivedm.BaseHandler):
         if self.webui:
             asyncio.create_task(self.webui.broadcast_to_obs('gift', {
                 'username': message.uname,
+                'face': message.face,
                 'gift_name': message.gift_name,
                 'count': message.num,
                 'price': f"{price:.2f}",
@@ -138,6 +140,7 @@ class BilibiliHandler(blivedm.BaseHandler):
         if self.webui:
             asyncio.create_task(self.webui.broadcast_to_obs('sc', {
                 'username': message.uname,
+                'face': message.face,
                 'message': message.message,
                 'price': message.price,
                 'dglab': {

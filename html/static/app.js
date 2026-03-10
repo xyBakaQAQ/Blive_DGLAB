@@ -102,11 +102,9 @@ function closeObsModal() {
     modal.style.display = 'none';
 }
 
-function copyObsUrl() {
+async function copyObsUrl() {
     const urlInput = document.getElementById('obs-url');
-    urlInput.select();
-    document.execCommand('copy');
-    alert('链接已复制到剪贴板！');
+    await navigator.clipboard.writeText(urlInput.value);
 }
 
 // 点击弹窗外部关闭

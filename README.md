@@ -83,9 +83,9 @@ python main.py
 
 打开浏览器访问：`http://localhost:8080`
 
-- **首页**：查看实时日志和运行状态
-- **配置**：在线修改所有配置项
-- **OBS**：获取 OBS 浏览器源链接
+- **首页**：查看日志
+- **配置**：修改配置项
+- **OBS**：获取 OBS 链接
 
 ## 配置说明
 
@@ -176,7 +176,3 @@ OBS 页面会自动加载最近 50 条弹幕历史记录。如果没有显示，
 
 - **[blivedm](https://github.com/xfgryujk/blivedm)** - Bilibili 直播弹幕库
 - **[DG-Lab Coyote Game Hub](https://github.com/hyperzlib/DG-Lab-Coyote-Game-Hub)** - DG-Lab 设备控制中心
-
-## 反馈与贡献
-
-欢迎提交 Issue 和 Pull Request！
