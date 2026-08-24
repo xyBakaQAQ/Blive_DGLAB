@@ -1,0 +1,9 @@
+server:
+  host: 0.0.0.0
+  port: 9878
+  token: none
+
+limits:
+  max_strength: 20
+  max_duration: 60
+  cooldown: 2

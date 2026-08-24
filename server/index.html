@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DG-Lab 远程控制终端</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f0f23;
+            color: #e0e0e0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .remote-container {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h1 { color: #00d9ff; font-size: 24px; }
+        h2 { color: #00d9ff; font-size: 18px; margin-bottom: 12px; }
+        h3 { color: #00b8dd; font-size: 14px; margin: 12px 0 8px; }
+
+        .card {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+        .section-help {
+            color: #999;
+            font-size: 13px;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .status-badge.online {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+        .status-badge.offline {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+            border: 1px solid #ff4444;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-badge.online .status-dot {
+            background: #00ff88;
+            box-shadow: 0 0 8px #00ff88;
+        }
+        .status-badge.offline .status-dot {
+            background: #ff4444;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            color: #00d9ff;
+            font-size: 13px;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .form-group small {
+            display: block;
+            color: #888;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            background: #0a0a15;
+            border: 1px solid #333;
+            color: #e0e0e0;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #00d9ff;
+        }
+
+        button, .btn-primary {
+            background: #00d9ff;
+            color: #000;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover, .btn-primary:hover {
+            background: #00b8dd;
+            transform: translateY(-1px);
+        }
+
+        .btn-emergency {
+            background: linear-gradient(135deg, #ff2222, #b30000);
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            width: 100%;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #ff4444;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        .btn-emergency:hover {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.6);
+            transform: scale(1.01);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .btn-action {
+            background: #14142d;
+            border: 1px solid #2c2c52;
+            color: #00d9ff;
+            font-size: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .btn-action span {
+            font-size: 11px;
+            color: #888;
+        }
+        .btn-action:hover {
+            background: #00d9ff;
+            color: #000;
+        }
+        .btn-action:hover span {
+            color: #222;
+        }
+        .btn-action.sub {
+            color: #ffaa00;
+        }
+        .btn-action.sub:hover {
+            background: #ffaa00;
+            color: #000;
+        }
+
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .range-slider {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #0a0a15;
+            outline: none;
+            accent-color: #00d9ff;
+        }
+        .range-value {
+            min-width: 45px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #00d9ff;
+            text-align: right;
+        }
+
+        .logs-container {
+            background: #0a0a15;
+            border-radius: 6px;
+            padding: 12px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .log-entry { margin-bottom: 3px; }
+        .log-time { color: #666; margin-right: 6px; }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background: #008744; }
+        .toast.error { background: #d62d20; }
+        .toast.info { background: #0057e7; }
+    </style>
+</head>
+<body>
+    <div class="remote-container">
+        <div class="header-bar">
+            <h1>🎮 DG-Lab 远程控制独立终端</h1>
+            <div id="status-badge" class="status-badge offline">
+                <span class="status-dot"></span>
+                <span id="status-text">检测中...</span>
+            </div>
+        </div>
+
+        <!-- 鉴权卡片 -->
+        <div class="card">
+            <h2>🔑 鉴权密钥</h2>
+            <div class="form-group" style="margin-bottom: 0;">
+                <div style="display: flex; gap: 8px;">
+                    <input type="password" id="remote-token" placeholder="输入服务端配置的通信 token" style="flex: 1;">
+                    <button onclick="saveToken()" style="white-space: nowrap;">保存</button>
+                </div>
+                <small>Token 将妥善保存在当前浏览器本地，下次访问自动读取</small>
+            </div>
+        </div>
+
+        <!-- 紧急制动 -->
+        <div class="card" style="border: 1px solid #ff444444;">
+            <button class="btn-emergency" onclick="sendStop()">
+                🛑 紧急停止 (归零)
+            </button>
+        </div>
+
+        <!-- 脉冲控制 -->
+        <div class="card">
+            <h2>⚡ 触发脉冲 (Pulse)</h2>
+            <p class="section-help">发送后强度暂时增加，指定秒数后自动恢复原始强度。</p>
+            <div class="form-group">
+                <label>脉冲强度 (<span id="pulse-strength-display">+5</span> 档)</label>
+                <div class="range-container">
+                    <input type="range" id="pulse-strength" class="range-slider" min="1" max="20" value="5" oninput="updatePulseStrength(this.value)">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>持续时长 (<span id="pulse-duration-display">5s</span>)</label>
+                <div class="range-container">
+                    <input type="range" id="pulse-duration" class="range-slider" min="1" max="60" value="5" oninput="updatePulseDuration(this.value)">
+                </div>
+            </div>
+            <button onclick="sendPulse()" class="btn-primary" style="width: 100%; padding: 12px;">
+                ⚡ 释放脉冲
+            </button>
+        </div>
+
+        <!-- 强度微调 -->
+        <div class="card">
+            <h2>🔧 强度微调 (Adjust)</h2>
+            <p class="section-help">常驻增加或减少当前强度档位。</p>
+
+            <h3 style="color: #00ff88;">🟢 增加强度</h3>
+            <div class="action-grid">
+                <button class="btn-action" onclick="sendAdjust('add', 1)">+1 <span>微弱增加</span></button>
+                <button class="btn-action" onclick="sendAdjust('add', 2)">+2 <span>温和增加</span></button>
+                <button class="btn-action" onclick="sendAdjust('add', 5)">+5 <span>明显增加</span></button>
+            </div>
+
+            <h3 style="color: #ffaa00; margin-top: 14px;">🟡 减少强度</h3>
+            <div class="action-grid">
+                <button class="btn-action sub" onclick="sendAdjust('subtract', 1)">-1 <span>微弱减少</span></button>
+                <button class="btn-action sub" onclick="sendAdjust('subtract', 2)">-2 <span>温和减少</span></button>
+                <button class="btn-action sub" onclick="sendAdjust('subtract', 5)">-5 <span>明显减少</span></button>
+            </div>
+        </div>
+
+        <!-- 控制日志 -->
+        <div class="card">
+            <h2>📋 控制日志</h2>
+            <div id="action-logs" class="logs-container"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let maxStrength = 20;
+        let maxDuration = 60;
+        let cooldownSeconds = 2;
+
+        function showToast(text, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = text;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => { toast.className = 'toast'; }, 3000);
+        }
+
+        function addActionLog(msg, type = 'info') {
+            const container = document.getElementById('action-logs');
+            const now = new Date().toTimeString().split(' ')[0];
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            let color = '#e0e0e0';
+            if (type === 'success') color = '#00ff88';
+            if (type === 'error') color = '#ff4444';
+            div.innerHTML = `<span class="log-time">[${now}]</span> <span style="color: ${color};">${msg}</span>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            while (container.children.length > 50) {
+                container.removeChild(container.firstChild);
+            }
+        }
+
+        function getToken() {
+            return localStorage.getItem('dglab_remote_token') || '';
+        }
+
+        function saveToken() {
+            const val = document.getElementById('remote-token').value.trim();
+            localStorage.setItem('dglab_remote_token', val);
+            showToast('Token 已保存', 'success');
+            checkStatus();
+        }
+
+        function updatePulseStrength(val) {
+            document.getElementById('pulse-strength-display').textContent = '+' + val;
+        }
+
+        function updatePulseDuration(val) {
+            document.getElementById('pulse-duration-display').textContent = val + 's';
+        }
+
+        async function checkStatus() {
+            try {
+                const token = getToken();
+                const resp = await fetch(`/api/status?token=${encodeURIComponent(token)}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const badge = document.getElementById('status-badge');
+                    const text = document.getElementById('status-text');
+                    if (data.connected_modules > 0) {
+                        badge.className = 'status-badge online';
+                        text.textContent = `被控端在线 (${data.connected_modules})`;
+                    } else {
+                        badge.className = 'status-badge offline';
+                        text.textContent = '被控端未连接';
+                    }
+
+                    if (data.limits) {
+                        maxStrength = data.limits.max_strength || 20;
+                        maxDuration = data.limits.max_duration || 60;
+                        cooldownSeconds = data.limits.cooldown || 2;
+                        document.getElementById('pulse-strength').max = maxStrength;
+                        document.getElementById('pulse-duration').max = maxDuration;
+                    }
+                }
+            } catch (e) {
+                console.error('状态查询失败', e);
+            }
+        }
+
+        async function sendCommand(payload) {
+            const token = getToken();
+            if (!token) {
+                showToast('请先输入并保存 Token！', 'error');
+                return;
+            }
+
+            try {
+                // 修改点：URL 加上 ?token= 参数，同时保留 Authorization Header
+                const resp = await fetch(`/api/control?token=${encodeURIComponent(token)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const res = await resp.json();
+                if (resp.ok && res.ok) {
+                    showToast('指令发送成功！', 'success');
+                    addActionLog(`发送指令成功: ${JSON.stringify(payload)}`, 'success');
+                } else {
+                    const errMsg = res.error || '请求失败';
+                    showToast(errMsg, 'error');
+                    addActionLog(`指令拒绝: ${errMsg}`, 'error');
+                }
+            } catch (e) {
+                showToast('网络请求异常: ' + e.message, 'error');
+                addActionLog(`网络错误: ${e.message}`, 'error');
+            }
+        }
+
+        function sendStop() { sendCommand({ action: 'stop' }); }
+        function sendAdjust(direction, strength) { sendCommand({ action: 'adjust', direction, strength }); }
+        function sendPulse() {
+            const strength = parseInt(document.getElementById('pulse-strength').value, 10);
+            const duration = parseFloat(document.getElementById('pulse-duration').value);
+            sendCommand({ action: 'pulse', strength, duration });
+        }
+
+        const savedToken = getToken();
+        if (savedToken) {
+            document.getElementById('remote-token').value = savedToken;
+        }
+        checkStatus();
+        setInterval(checkStatus, 3000);
+    </script>
+</body>
+</html>
