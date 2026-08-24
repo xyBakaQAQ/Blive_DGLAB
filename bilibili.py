@@ -2,6 +2,7 @@
 """哔哩哔哩直播间监听模块"""
 import asyncio
 import logging
+import time
 from typing import Optional
 
 import blivedm
@@ -44,6 +45,8 @@ class BilibiliHandler(blivedm.BaseHandler):
         self.config = config
         self.dglab = dglab_controller
         self.webui = webui
+        self._gift_seen = {}
+        self._gift_seen_ttl = 15
         
         # 初始化限流器
         rl_cfg = config["danmaku"].get("rate_limit", {})
@@ -59,6 +62,7 @@ class BilibiliHandler(blivedm.BaseHandler):
 
     def _on_danmaku(self, client, message: web_models.DanmakuMessage):
         cfg = self.config["danmaku"]
+        viewer_rule = self._match_viewer_rule(message)
         if not cfg.get("enabled", True):
             return
         
@@ -66,10 +70,13 @@ class BilibiliHandler(blivedm.BaseHandler):
             logger.info(f"[弹幕] {message.uname}：{message.msg} (已达限流上限)")
             return
 
-        add = cfg["strength_add"]
-        duration = cfg["duration"]
+        add = int(viewer_rule.get("strength", cfg["strength_add"])) if viewer_rule else cfg["strength_add"]
+        duration = viewer_rule.get("duration", cfg["duration"]) if viewer_rule else cfg["duration"]
         logger.info(f"[弹幕] {message.uname}：{message.msg} → +{add} / {fmt_duration(duration)}")
-        asyncio.create_task(self.dglab.pulse(add, duration))
+        if viewer_rule and viewer_rule.get("action", "add") == "subtract":
+            asyncio.create_task(self.dglab.strength(sub=add))
+        else:
+            asyncio.create_task(self.dglab.pulse(add, duration))
         
         # 发送到 OBS
         if self.webui:
@@ -98,8 +105,22 @@ class BilibiliHandler(blivedm.BaseHandler):
         if not cfg.get("enabled", True) or message.coin_type != "gold":
             return
         
+        event_id = message.tid or message.rnd
+        if event_id:
+            now = time.monotonic()
+            self._gift_seen = {
+                key: timestamp for key, timestamp in self._gift_seen.items()
+                if now - timestamp < self._gift_seen_ttl
+            }
+            if event_id in self._gift_seen:
+                return
+            self._gift_seen[event_id] = now
+
         price = message.total_coin / 1000.0
-        tier = self._match_tier(cfg["tiers"], price)
+        unit_price = message.price / 1000.0
+        tier = self._match_gift_rule(cfg.get("rules", []), message.gift_name, price, unit_price)
+        if tier is None and not cfg.get("rules"):
+            tier = self._match_tier(cfg.get("tiers", []), price)
         if tier is None:
             logger.info(f"[礼物] {message.uname} {message.gift_name} x{message.num}（¥{price:.2f}）→ 未达最低档位")
             return
@@ -116,6 +137,7 @@ class BilibiliHandler(blivedm.BaseHandler):
                 'gift_name': message.gift_name,
                 'count': message.num,
                 'price': f"{price:.2f}",
+                'rule': tier.get('gift_name') or f"金额≥{tier.get('min_price', 0)}",
                 'dglab': {
                     'strength': add,
                     'duration': fmt_duration(tier['duration'])
@@ -194,3 +216,39 @@ class BilibiliHandler(blivedm.BaseHandler):
     def _match_tier(tiers: list, price: float) -> Optional[dict]:
         sorted_tiers = sorted(tiers, key=lambda t: t["min_price"], reverse=True)
         return next((t for t in sorted_tiers if price >= t["min_price"]), None)
+
+    @staticmethod
+    def _match_gift_rule(rules: list, gift_name: str, total_price: float, unit_price: float = None) -> Optional[dict]:
+        unit_price = total_price if unit_price is None else unit_price
+        for rule in rules:
+            if rule.get("enabled", True) is False:
+                continue
+            rule_name = str(rule.get("gift_name", "")).strip()
+            match_type = rule.get("match_type", "exact")
+            if rule_name and ((match_type == "contains" and rule_name in gift_name) or
+                              (match_type != "contains" and rule_name == gift_name)):
+                return rule
+        amount_rules = []
+        for rule in rules:
+            if rule.get("enabled", True) is False or rule.get("gift_name"):
+                continue
+            if rule.get("min_price") is None and rule.get("max_price") is None:
+                continue
+            amount = unit_price if rule.get("price_mode", "total") == "unit" else total_price
+            minimum = float(rule.get("min_price", 0))
+            maximum = rule.get("max_price")
+            if amount >= minimum and (maximum in (None, "") or amount <= float(maximum)):
+                amount_rules.append(rule)
+        return max(amount_rules, key=lambda r: float(r.get("min_price", 0)), default=None)
+
+    def _match_viewer_rule(self, message) -> Optional[dict]:
+        cfg = self.config.get("viewer_rules", {})
+        if not cfg.get("enabled", False):
+            return None
+        for rule in cfg.get("special_users", []):
+            if rule.get("enabled", True) and str(rule.get("uid", "")) == str(message.uid):
+                return rule
+        for rule in cfg.get("keywords", []):
+            if rule.get("enabled", True) and rule.get("keyword") in message.msg:
+                return rule
+        return cfg.get("default") if cfg.get("default", {}).get("enabled", True) else None

@@ -35,10 +35,19 @@ function populateForm(config) {
     document.getElementById('rate-limit-enabled').checked = rateLimit.enabled;
     document.getElementById('rate-limit-window').value = rateLimit.time_window || '1m';
     document.getElementById('rate-limit-count').value = rateLimit.max_count || 5;
+
+    const viewer = config.viewer_rules || {};
+    document.getElementById('viewer-rules-enabled').checked = viewer.enabled === true;
+    document.getElementById('viewer-default-action').value = viewer.default?.action || 'add';
+    document.getElementById('viewer-default-strength').value = viewer.default?.strength || 1;
+    document.getElementById('viewer-default-duration').value = viewer.default?.duration || '30s';
+    document.getElementById('viewer-users-json').value = JSON.stringify(viewer.special_users || [], null, 2);
+    document.getElementById('viewer-keywords-json').value = JSON.stringify(viewer.keywords || [], null, 2);
     
     // 礼物
     document.getElementById('gift-enabled').checked = config.gift.enabled;
     renderTiers('gift', config.gift.tiers);
+    renderGiftRules(config.gift.rules || []);
     
     // SC
     document.getElementById('sc-enabled').checked = config.super_chat.enabled;
@@ -96,6 +105,78 @@ function addGiftTier() {
     renderTiers('gift', currentConfig.gift.tiers);
 }
 
+function renderGiftRules(rules) {
+    const container = document.getElementById('gift-rules');
+    container.innerHTML = '';
+    rules.forEach((rule, index) => {
+        const div = document.createElement('div');
+        div.className = 'gift-rule-item';
+        div.innerHTML = `
+            <div class="gift-rule-head">
+                <label class="checkbox-label"><input type="checkbox" data-field="enabled" ${rule.enabled !== false ? 'checked' : ''}> 启用规则</label>
+                <span class="rule-index">规则 ${index + 1}</span>
+                <button class="btn-remove" onclick="removeGiftRule(${index})">删除</button>
+            </div>
+            <div class="gift-rule-grid">
+                <label>礼物名称
+                    <input type="text" placeholder="留空表示金额规则" value="${escapeHtml(rule.gift_name || '')}" data-field="gift_name">
+                </label>
+                <label>名称匹配
+                    <select data-field="match_type">
+                        <option value="exact" ${rule.match_type !== 'contains' ? 'selected' : ''}>完全相同</option>
+                        <option value="contains" ${rule.match_type === 'contains' ? 'selected' : ''}>包含文字</option>
+                    </select>
+                </label>
+                <label>价格模式
+                    <select data-field="price_mode">
+                        <option value="total" ${rule.price_mode !== 'unit' ? 'selected' : ''}>本次总额</option>
+                        <option value="unit" ${rule.price_mode === 'unit' ? 'selected' : ''}>单个礼物</option>
+                    </select>
+                </label>
+                <label>最低金额
+                    <input type="number" min="0" step="0.01" placeholder="可空" value="${rule.min_price ?? ''}" data-field="min_price">
+                </label>
+                <label>最高金额
+                    <input type="number" min="0" step="0.01" placeholder="可空" value="${rule.max_price ?? ''}" data-field="max_price">
+                </label>
+                <label>强度增加
+                    <input type="number" min="1" max="100" value="${rule.strength_add ?? 1}" data-field="strength_add">
+                </label>
+                <label>持续时间
+                    <input type="text" placeholder="30s / 1m" value="${escapeHtml(rule.duration || '30s')}" data-field="duration">
+                </label>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function addGiftRule() {
+    if (!currentConfig.gift.rules) currentConfig.gift.rules = [];
+    currentConfig.gift.rules.push({ enabled: true, gift_name: '', match_type: 'exact', price_mode: 'total', min_price: '', max_price: '', strength_add: 5, duration: '30s' });
+    renderGiftRules(currentConfig.gift.rules);
+}
+
+function removeGiftRule(index) {
+    currentConfig.gift.rules.splice(index, 1);
+    renderGiftRules(currentConfig.gift.rules);
+}
+
+function collectGiftRules() {
+    return Array.from(document.querySelectorAll('#gift-rules .tier-item')).map(item => {
+        const rule = {};
+        item.querySelectorAll('input, select').forEach(input => {
+            rule[input.dataset.field] = input.type === 'checkbox' ? input.checked : input.value.trim();
+        });
+        if (rule.min_price !== '') rule.min_price = parseFloat(rule.min_price);
+        else delete rule.min_price;
+        if (rule.max_price !== '') rule.max_price = parseFloat(rule.max_price);
+        else delete rule.max_price;
+        rule.strength_add = parseInt(rule.strength_add, 10);
+        return rule;
+    }).filter(rule => rule.gift_name || rule.min_price !== undefined || rule.max_price !== undefined);
+}
+
 function addSCTier() {
     if (!currentConfig.super_chat.tiers) currentConfig.super_chat.tiers = [];
     currentConfig.super_chat.tiers.push({ min_price: 30, strength_add: 15, duration: '10m' });
@@ -132,6 +213,13 @@ function collectTiers(type) {
 
 async function saveConfig() {
     try {
+        const parseJsonList = id => {
+            const value = document.getElementById(id).value.trim();
+            if (!value) return [];
+            const parsed = JSON.parse(value);
+            if (!Array.isArray(parsed)) throw new Error(`${id} 必须是数组`);
+            return parsed;
+        };
         const config = {
             bilibili: {
                 room_id: parseInt(document.getElementById('room-id').value),
@@ -157,6 +245,19 @@ async function saveConfig() {
                 },
                 guard_bonus: currentConfig.danmaku.guard_bonus || {}
             },
+            viewer_rules: {
+                enabled: document.getElementById('viewer-rules-enabled').checked,
+                default: {
+                    enabled: true,
+                    action: document.getElementById('viewer-default-action').value,
+                    strength: parseInt(document.getElementById('viewer-default-strength').value, 10) || 1,
+                    duration: document.getElementById('viewer-default-duration').value || '30s'
+                },
+                special_users: parseJsonList('viewer-users-json'),
+                keywords: parseJsonList('viewer-keywords-json')
+            },
+            // 远程配置不在客户端前端展示，保存其他配置时原样保留
+            remote: currentConfig.remote || {},
             interact: {
                 enter: {
                     enabled: document.getElementById('interact-enter-enabled').checked,
@@ -181,6 +282,7 @@ async function saveConfig() {
             },
             gift: {
                 enabled: document.getElementById('gift-enabled').checked,
+                rules: collectGiftRules(),
                 tiers: collectTiers('gift')
             },
             super_chat: {
@@ -233,6 +335,12 @@ function showMessage(text, type) {
     setTimeout(() => {
         msg.style.display = 'none';
     }, 5000);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // 初始化

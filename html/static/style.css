@@ -200,7 +200,8 @@ h3 { color: #00b8dd; margin: 15px 0 10px; font-size: 16px; }
 }
 
 input[type="text"],
-input[type="number"] {
+input[type="number"],
+textarea {
     width: 100%;
     background: #0a0a15;
     border: 1px solid #333;
@@ -211,9 +212,48 @@ input[type="number"] {
 }
 
 input[type="text"]:focus,
-input[type="number"]:focus {
+input[type="number"]:focus,
+textarea:focus {
     outline: none;
     border-color: #00d9ff;
+}
+
+textarea { min-height: 110px; resize: vertical; font-family: Consolas, monospace; }
+.viewer-default-grid,
+.viewer-json-grid {
+    display: grid;
+    gap: 14px;
+    margin-top: 14px;
+    width: 100%;
+    min-width: 0;
+}
+
+.viewer-default-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.viewer-json-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.viewer-default-row label,
+.viewer-json-grid label { color: #9bddeb; font-size: 12px; font-weight: 500; min-width: 0; }
+.viewer-default-row input, .viewer-default-row select { display: block; margin-top: 5px; }
+.viewer-default-row > label,
+.viewer-json-grid > label {
+    display: block;
+    color: #9bddeb;
+    font-size: 12px;
+    font-weight: 500;
+}
+.viewer-json-grid textarea {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 6px;
+    background: #0a0a15 !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #333 !important;
+    box-shadow: none;
+}
+
+@media (max-width: 700px) {
+    .viewer-default-grid,
+    .viewer-json-grid { grid-template-columns: 1fr; }
 }
 
 button, .btn-primary, .btn-secondary {
@@ -265,6 +305,87 @@ button:active, .btn-primary:active {
 
 .tier-item input {
     margin-bottom: 0;
+}
+
+.section-help {
+    color: #999;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: -4px 0 14px;
+}
+
+.gift-rule-item {
+    background: linear-gradient(135deg, #101025, #14142d);
+    border: 1px solid #2c2c52;
+    border-left: 3px solid #00d9ff;
+    padding: 14px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.gift-rule-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.gift-rule-head .checkbox-label {
+    color: #00ffb3;
+    margin-right: auto;
+}
+
+.rule-index {
+    color: #777;
+    font-size: 12px;
+}
+
+.gift-rule-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.gift-rule-grid label {
+    color: #9bddeb;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.gift-rule-grid input,
+.gift-rule-grid select {
+    display: block;
+    width: 100%;
+    margin-top: 5px;
+}
+
+.gift-rule {
+    color: #00d9ff;
+    font-size: 12px;
+    margin-left: 6px;
+}
+
+select {
+    background: #0a0a15;
+    border: 1px solid #333;
+    color: #e0e0e0;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+select:focus {
+    outline: none;
+    border-color: #00d9ff;
+}
+
+@media (max-width: 1100px) {
+    .gift-rule-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 640px) {
+    .gift-rule-grid { grid-template-columns: 1fr 1fr; }
+    .gift-rule-head { flex-wrap: wrap; }
 }
 
 .btn-remove {

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Web UI 模块"""
 import asyncio
+import hmac
 import json
 import logging
 import os
@@ -54,6 +55,7 @@ class WebUI:
         self.app.router.add_get('/api/config', self.handle_get_config)
         self.app.router.add_get('/api/config/full', self.handle_get_full_config)
         self.app.router.add_post('/api/config/save', self.handle_save_config)
+        self.app.router.add_post('/api/remote-command', self.handle_remote_command)
         self.app.router.add_get('/api/logs', self.handle_get_logs)
         self.app.router.add_get('/api/obs/history', self.handle_get_obs_history)
         self.app.router.add_get('/ws', self.handle_websocket)
@@ -176,6 +178,38 @@ class WebUI:
         except Exception as e:
             logger.error(f"保存配置失败: {e}")
             return web.json_response({'success': False, 'error': str(e)})
+
+    async def handle_remote_command(self, request):
+        """供独立 remote_module 使用的本地受限入口，不在前端展示。"""
+        expected = str(self.config.get('remote', {}).get('local_token', ''))
+        supplied = request.headers.get('Authorization', '').removeprefix('Bearer ').strip()
+        if not expected or not supplied or not hmac.compare_digest(supplied, expected):
+            raise web.HTTPUnauthorized()
+        try:
+            command = await request.json()
+            limits = self.config.get('remote', {}).get('limits', {})
+            action = command.get('action')
+            strength = int(command.get('strength', 0))
+            max_strength = int(limits.get('max_strength', 20))
+            if action == 'stop':
+                await self.dglab.strength(sub=100)
+            elif action == 'adjust':
+                if not 1 <= strength <= max_strength:
+                    raise ValueError('strength exceeds local limit')
+                if command.get('direction', 'add') == 'subtract':
+                    await self.dglab.strength(sub=strength)
+                else:
+                    await self.dglab.strength(add=strength)
+            elif action == 'pulse':
+                duration = float(command.get('duration', 0))
+                if not 1 <= strength <= max_strength or not 0 < duration <= float(limits.get('max_duration', 60)):
+                    raise ValueError('command exceeds local limit')
+                asyncio.create_task(self.dglab.pulse(strength, duration))
+            else:
+                raise ValueError('unsupported action')
+            return web.json_response({'ok': True})
+        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+            return web.json_response({'ok': False, 'error': str(exc)}, status=400)
     
     async def handle_get_logs(self, request):
         """获取历史日志"""

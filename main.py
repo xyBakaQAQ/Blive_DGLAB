@@ -13,6 +13,7 @@ import blivedm
 from bilibili import BilibiliHandler
 from dglab import DGLabController
 from web import WebUI
+from remote_module import run as run_remote_module
 
 # ── 配置加载 ──────────────────────────────────────────────────────────────────
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.yaml")
@@ -62,6 +63,15 @@ async def main():
         port=webui_port
     )
     await webui.start()
+
+    remote_task = None
+    remote_cfg = config.get("remote", {})
+    if remote_cfg.get("enabled", False):
+        remote_task = asyncio.create_task(run_remote_module(config))
+        # 强制显示启动日志，方便用户排查
+        logger.info("【远程控制】模块已启动，正在连接远程服务端...")
+    else:
+        logger.info("远程服务端连接未启用（remote.enabled=false）")
     
     # 自动打开浏览器
     browser_host = "localhost" if webui_host == "0.0.0.0" else webui_host
@@ -80,6 +90,9 @@ async def main():
     except (KeyboardInterrupt, asyncio.CancelledError):
         pass
     finally:
+        if remote_task:
+            remote_task.cancel()
+            await asyncio.gather(remote_task, return_exceptions=True)
         await client.stop_and_close()
         await webui.stop()
         await session.close()

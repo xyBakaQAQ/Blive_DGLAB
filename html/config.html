@@ -14,7 +14,7 @@
             <a href="/config.html" class="active">⚙️ 配置</a>
             <a href="/obs.html">🎬 OBS</a>
         </div>
-        
+
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #252540;">
             <div style="color: #888; font-size: 12px; margin-bottom: 10px;">快速导航</div>
             <div class="nav">
@@ -121,6 +121,21 @@
             </div>
         </div>
         
+        <div class="card" id="viewer-rules">
+            <h2>观众规则</h2>
+            <p class="section-help">可按 UID 或关键词覆盖普通观众的默认触发。action 使用 add 或 subtract。</p>
+            <label class="checkbox-label"><input type="checkbox" id="viewer-rules-enabled"> 启用观众规则</label>
+            <div class="viewer-default-grid viewer-default-row">
+                <label>默认动作<select id="viewer-default-action"><option value="add">增加</option><option value="subtract">减少</option></select></label>
+                <label>默认强度<input type="number" id="viewer-default-strength" min="1" max="20"></label>
+                <label>默认时长<input type="text" id="viewer-default-duration" placeholder="30s"></label>
+            </div>
+            <div class="viewer-json-grid">
+                <label>特殊观众 JSON<textarea id="viewer-users-json" rows="5" placeholder='[{"uid":123,"action":"add","strength":3,"duration":"30s"}]'></textarea></label>
+                <label>关键词 JSON<textarea id="viewer-keywords-json" rows="5" placeholder='[{"keyword":"加强","action":"add","strength":2,"duration":"20s"}]'></textarea></label>
+            </div>
+        </div>
+
         <div class="card" id="gift">
             <h2>🎁 礼物配置</h2>
             <div class="form-group">
@@ -130,6 +145,10 @@
                 </label>
             </div>
             <div id="gift-tiers"></div>
+            <h3>自定义礼物规则</h3>
+            <p class="section-help">名称规则优先于金额规则。填写规则后，未匹配的礼物不会触发；不填写规则时沿用下方金额档位。</p>
+            <div id="gift-rules"></div>
+            <button onclick="addGiftRule()" class="btn-secondary">+ 添加名称/金额规则</button>
             <button onclick="addGiftTier()" class="btn-secondary">+ 添加档位</button>
         </div>
         
@@ -266,7 +285,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="card">
             <div class="button-group">
                 <button onclick="saveConfig()" class="btn-primary">💾 保存配置</button>

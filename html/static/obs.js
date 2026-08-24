@@ -94,6 +94,7 @@ function addGift(data) {
             <div class="danmaku-message">
                 赠送 <span class="gift-name">${escapeHtml(data.gift_name)}</span> 
                 <span class="gift-count">x${data.count}</span>
+                ${data.rule ? `<span class="gift-rule">[${escapeHtml(data.rule)}]</span>` : ''}
                 <span class="gift-price">¥${data.price}</span>
             </div>
             ${data.dglab ? `
