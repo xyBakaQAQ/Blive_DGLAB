@@ -1,6 +1,6 @@
 bilibili:
-  room_id: 1984346171
-  sessdata: b456c1d3%2C1799292929%2Cb3f76%2A71CjA_XQ0qVbyWqpFGmJGWdXg6JFW_lwhdWyIDsrGZacKDq8xPW-gCjCcgJ7X9G7H3eNMSVlhOdjhrYlJlbV9PWm1jNTItVzA0bC1URlV2YTBRZElRcGYxcU54SFlFaXZ2MmNFaThXUXptcExmN3BhT2VBQkpUc2hFSk5WYnFUbWREQzRmR251SWZnIIEC
+  room_id: 
+  sessdata: 
 danmaku:
   duration: 10s
   enabled: true
@@ -95,7 +95,7 @@ remote:
   local_token: replace-with-a-long-random-local-token
   local_url: http://127.0.0.1:8080
   server_token: z1Se5CyOFz260dM0Nedx0_fFS1_eplGhbkrxuBagMTA
-  server_ws: ws://nhy.monthzifang.top:9878/ws/module
+  server_ws: ws://xxxxxx:xxxx/ws/module
 super_chat:
   enabled: true
   tiers:
